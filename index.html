@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Matching Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+        #generated-color, #user-color {
+            width: 100px;
+            height: 100px;
+            margin: 10px auto;
+        }
+        .color-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #timer {
+            font-size: 24px;
+            margin-top: 20px;
+            color: #333;
+        }
+        #result {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+        #hotkeys {
+            font-size: 16px;
+            color: #555;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Color Matching Game</h1>
+<div>
+    <button id="start-button">Start</button>
+</div>
+<div id="generated-color"></div>
+<p>Match this color using RGB values:</p>
+<div class="color-inputs">
+    <label>Red: <span id="red-value">0</span></label>
+    <label>Green: <span id="green-value">0</span></label>
+    <label>Blue: <span id="blue-value">0</span></label>
+</div>
+<div id="user-color"></div>
+<button id="submit-button" disabled>Submit</button>
+<div id="timer">Time left: 60s</div>
+<div id="result"></div>
+
+<div id="hotkeys">
+    <p>Hotkeys: A - Increase Red, Z - Decrease Red | S - Increase Green, X - Decrease Green | D - Increase Blue, C - Decrease Blue</p>
+</div>
+
+<script>
+    let generatedColor = { r: 0, g: 0, b: 0 };
+    let userColor = { r: 0, g: 0, b: 0 };
+    let timerInterval;
+    let timeLeft = 60;
+
+    function updateColors() {
+        document.getElementById("user-color").style.backgroundColor = `rgb(${userColor.r}, ${userColor.g}, ${userColor.b})`;
+        document.getElementById("red-value").textContent = userColor.r;
+        document.getElementById("green-value").textContent = userColor.g;
+        document.getElementById("blue-value").textContent = userColor.b;
+    }
+
+    function startGame() {
+        // Generate random color
+        generatedColor = {
+            r: Math.floor(Math.random() * 256),
+            g: Math.floor(Math.random() * 256),
+            b: Math.floor(Math.random() * 256)
+        };
+        document.getElementById("generated-color").style.backgroundColor = `rgb(${generatedColor.r}, ${generatedColor.g}, ${generatedColor.b})`;
+        userColor = { r: 0, g: 0, b: 0 };
+        updateColors();
+        
+        // Reset timer and result
+        timeLeft = 60;
+        document.getElementById("timer").textContent = `Time left: ${timeLeft}s`;
+        document.getElementById("result").textContent = "";
+        
+        // Enable submit button
+        document.getElementById("submit-button").disabled = false;
+        
+        // Start timer
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById("timer").textContent = `Time left: ${timeLeft}s`;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                checkResult();
+            }
+        }, 1000);
+    }
+
+    function adjustColor(color, delta) {
+        userColor[color] = Math.max(0, Math.min(255, userColor[color] + delta));
+        updateColors();
+    }
+
+    function checkResult() {
+        // Disable submit button
+        document.getElementById("submit-button").disabled = true;
+        
+        // Display the comparison result
+        const resultElement = document.getElementById("result");
+        const redMatch = Math.abs(generatedColor.r - userColor.r) <= 5;
+        const greenMatch = Math.abs(generatedColor.g - userColor.g) <= 5;
+        const blueMatch = Math.abs(generatedColor.b - userColor.b) <= 5;
+
+        resultElement.innerHTML = `
+            <p>Generated Color RGB: (${generatedColor.r}, ${generatedColor.g}, ${generatedColor.b})</p>
+            <p>Your Color RGB: (${userColor.r}, ${userColor.g}, ${userColor.b})</p>
+            <p>${redMatch && greenMatch && blueMatch ? "Pass" : "Fail"}</p>
+        `;
+    }
+
+    // Event listeners
+    document.getElementById("start-button").addEventListener("click", startGame);
+    document.getElementById("submit-button").addEventListener("click", () => {
+        clearInterval(timerInterval);
+        checkResult();
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (event) => {
+        switch(event.key.toLowerCase()) {
+            case "a": adjustColor("r", 1); break;
+            case "z": adjustColor("r", -1); break;
+            case "s": adjustColor("g", 1); break;
+            case "x": adjustColor("g", -1); break;
+            case "d": adjustColor("b", 1); break;
+            case "c": adjustColor("b", -1); break;
+        }
+    });
+</script>
+
+</body>
+</html>
